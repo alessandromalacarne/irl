@@ -3,9 +3,9 @@
 *.d.ts
 node_modules
 
+<<<<<<< HEAD
 web/.nuxt
 
-.nuxt
 out
 
 # CDK asset staging directory
