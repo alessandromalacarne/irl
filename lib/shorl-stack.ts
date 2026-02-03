@@ -9,9 +9,7 @@ export class ShorlStack extends cdk.Stack {
     const main = new lambda.Function(this, 'Main', {
       runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'index.handler',
-      code: lambda.Code.fromInline(`exports.handler = async (event) => { 
-        return { statusCode: 200, body: 'Hello from Shorl!' };
-}`),
+      code: lambda.Code.fromAsset('./src'),
     });
 
     const mainUrl = main.addFunctionUrl({
