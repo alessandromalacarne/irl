@@ -2,9 +2,7 @@
 !jest.config.js
 *.d.ts
 node_modules
-web/.nuxt
 
-<<<<<<< HEAD
 web/.nuxt
 
 out
