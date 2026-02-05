@@ -1,16 +1,22 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 
 export class ShorlStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
+    const main = new lambda.Function(this, 'Main', {
+      runtime: lambda.Runtime.NODEJS_22_X,
+      handler: 'index.handler',
+      code: lambda.Code.fromAsset('./src'),
+    });
 
-    // example resource
-    // const queue = new sqs.Queue(this, 'ShorlQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+    const mainUrl = main.addFunctionUrl({
+      authType: lambda.FunctionUrlAuthType.NONE, // WARNING: Insecure
+    });
+    new cdk.CfnOutput(this, 'MainUrl', {
+      value: mainUrl.url,
+    });
   }
 }
