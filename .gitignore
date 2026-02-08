@@ -2,7 +2,7 @@
 !jest.config.js
 *.d.ts
 node_modules
-.nuxt/
+web/.nuxt
 
 # CDK asset staging directory
 .cdk.staging
