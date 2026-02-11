@@ -1,5 +1,11 @@
+import { nanoid } from "nanoid";
+
 function shorten(url: string): string {
-    return `Shortening: ${url}`
+    const id = nanoid(6);
+
+    localStorage.setItem(id, url);
+
+    return `Shortening: ${url} for ${id}`
 }
 
 
