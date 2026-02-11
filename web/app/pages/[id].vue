@@ -4,7 +4,7 @@ const route = useRoute()
 
 if (process.client) {
   const url = localStorage.getItem(route.params.id);
-  console.log(url);
+  navigateTo(url, { external: true });
 }
 
 </script>
