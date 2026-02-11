@@ -1,5 +1,5 @@
 <script setup>
-import shorten from './composable/shortener.ts'
+import shorten from '../composable/shortener.ts'
 
 const userUrl = ref('');
 const output = ref('');
