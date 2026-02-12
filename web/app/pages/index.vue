@@ -14,8 +14,10 @@ const clickShort = () => {
 <template>
   <div>
     <h1>Shorl</h1>
-    <input v-model="userUrl">
-    <button @click="clickShort">Short it</button>
+    <form @submit.prevent="clickShort">
+      <input v-model="userUrl" type="url" required placeholder="https://example.com">
+      <button type="submit">Short it</button>
+    </form>
     <p>{{ output }}</p>
   </div>
 </template>
