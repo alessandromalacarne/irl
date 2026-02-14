@@ -1,12 +1,14 @@
-<script setup>
-import shorten from '../composable/shortener.ts'
+<script setup lang="ts">
+import api from '../composable/api.ts'
+import { SendUrlResponse } from '../types.ts'
 
 const userUrl = ref('');
 const output = ref('');
 
-const clickShort = () => {
-  const shortenResult = shorten(userUrl.value);
-  output.value = shortenResult;
+const clickShort = async () => {
+  const response: SendUrlResponse = await api.sendUrl(userUrl.value);
+  localStorage.setItem(response.id, response.url);
+  output.value = `Shortened ${userUrl.value} to ${response.id}`;
 };
 
 </script>
