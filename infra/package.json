@@ -1,8 +1,8 @@
 {
-  "name": "shorl",
+  "name": "irl",
   "version": "0.1.0",
   "bin": {
-    "shorl": "bin/shorl.js"
+    "irl": "bin/irl.js"
   },
   "scripts": {
     "build": "tsc",

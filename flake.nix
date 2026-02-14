@@ -1,5 +1,5 @@
 {
-  description = "Shorl dev environment";
+  description = "Irl dev environment";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
@@ -34,7 +34,7 @@
         ];
 
         shellHook = ''
-          echo "Welcome to Shorl!"
+          echo "Welcome to Irl!"
         '';
       };
     };
