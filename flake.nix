@@ -6,7 +6,12 @@
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable }:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      nixpkgs-unstable,
+    }:
     let
       system = "x86_64-linux";
 
@@ -18,10 +23,15 @@
           })
         ];
       };
-    in {
+    in
+    {
       devShells.${system}.default = pkgs.mkShell {
-        buildInputs =
-          [ pkgs.typescript pkgs.gitflow pkgs.unstable.awscli2 pkgs.nodejs ];
+        buildInputs = [
+          pkgs.typescript
+          pkgs.gitflow
+          pkgs.unstable.awscli2
+          pkgs.nodejs
+        ];
 
         shellHook = ''
           echo "Welcome to Shorl!"
