@@ -15,7 +15,7 @@ const clickShort = async () => {
 
 <template>
   <div>
-    <h1>Shorl</h1>
+    <h1>Irl</h1>
     <form @submit.prevent="clickShort">
       <input v-model="userUrl" type="url" required placeholder="https://example.com">
       <button type="submit">Short it</button>

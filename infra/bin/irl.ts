@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
-import { ShorlStack } from '../lib/shorl-stack';
+import { IrlStack } from '../lib/irl-stack';
 
 const app = new cdk.App();
-new ShorlStack(app, 'ShorlStack', {
+new IrlStack(app, 'IrlStack', {
   env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
 });
