@@ -1,8 +1,8 @@
 {
-  "name": "%name%",
+  "name": "irl",
   "version": "0.1.0",
   "bin": {
-    "%name%": "bin/%name%.js"
+    "irl": "bin/irl.js"
   },
   "scripts": {
     "build": "tsc",
