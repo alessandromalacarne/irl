@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import api from '../composable/api.ts'
-import { SendUrlResponse } from '../types.ts'
+import type { SendUrlResponse } from '../../types.ts'
 
 const userUrl = ref('');
 const output = ref('');

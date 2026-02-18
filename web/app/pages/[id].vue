@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import db from '../composable/db.ts'
 const route = useRoute()
 
 if (process.client) {
