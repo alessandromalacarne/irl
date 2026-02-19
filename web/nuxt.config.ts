@@ -2,8 +2,12 @@
 export default defineNuxtConfig({
   nitro: {
     preset: 'aws-lambda',
-    serverStatic: true
   },
+
+  runtimeConfig: {
+    apiUrl: process.env.API_URL
+  },
+
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true }
 })
