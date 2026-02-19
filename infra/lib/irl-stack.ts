@@ -9,7 +9,7 @@ export class IrlStack extends cdk.Stack {
     const main = new lambda.Function(this, 'Main', {
       runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'index.handler',
-      code: lambda.Code.fromAsset('./src'),
+      code: lambda.Code.fromAsset('../web/.output/server'),
     });
 
     const mainUrl = main.addFunctionUrl({
