@@ -2,7 +2,9 @@
 !jest.config.js
 *.d.ts
 node_modules
+.env
 
+web/.env
 web/.nuxt
 web/.output
 
