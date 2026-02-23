@@ -14,6 +14,11 @@ export class IrlStack extends cdk.Stack {
 
     const mainUrl = main.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE, // WARNING: Insecure
+      cors: {
+        allowedOrigins: ['*'],
+        allowedMethods: [lambda.HttpMethod.POST],
+        allowedHeaders: ['*'],
+      },
     });
     new cdk.CfnOutput(this, 'MainUrl', {
       value: mainUrl.url,
