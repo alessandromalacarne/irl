@@ -5,7 +5,9 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    apiUrl: process.env.API_URL
+    public: {
+      apiUrl: process.env.API_URL ?? 'http://localhost:3000'
+    }
   },
 
   compatibilityDate: '2025-07-15',
