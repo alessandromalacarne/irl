@@ -5,6 +5,8 @@
     "irl": "bin/irl.js"
   },
   "scripts": {
+    "dev": "npm --prefix web run dev",
+    "prod": "npm --prefix web run build && npm --prefix infra run deploy",
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
