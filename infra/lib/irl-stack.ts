@@ -13,7 +13,7 @@ export class IrlStack extends cdk.Stack {
     });
 
     const mainUrl = main.addFunctionUrl({
-      authType: lambda.FunctionUrlAuthType.NONE, // WARNING: Insecure
+      authType: lambda.FunctionUrlAuthType.NONE,
       cors: {
         allowedOrigins: ['*'],
         allowedMethods: [lambda.HttpMethod.POST],
