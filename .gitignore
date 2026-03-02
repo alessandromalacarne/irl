@@ -8,9 +8,11 @@ web/.output
 web/.env
 web/dist
 
+
 .nuxt
 out
 
 # CDK asset staging directory
 .cdk.staging
 cdk.out
+infra/cdk-outputs.json
