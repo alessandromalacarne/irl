@@ -6,8 +6,8 @@
   },
   "scripts": {
     "dev": "npm --prefix web run dev",
-    "prod": "npm --prefix web run build && npm --prefix infra run deploy",
-    "build": "tsc",
+    "build": "npm run build --prefix infra && npm install --prefix web && npm run build --prefix web",
+    "prod": "npm run deploy --prefix infra && node scripts/write-env.mjs && npm run dev --prefix web",
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk"
