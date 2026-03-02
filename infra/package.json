@@ -9,7 +9,7 @@
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
-    "deploy": "npx aws-cdk@latest deploy"
+    "deploy": "npx aws-cdk@latest deploy --outputs-file cdk-outputs.json"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
