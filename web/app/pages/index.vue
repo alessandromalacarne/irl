@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from "vue"
 import api from '../composable/api.ts'
 import type { SendUrlResponse } from '../../types.ts'
 
