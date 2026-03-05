@@ -8,3 +8,7 @@ vi.stubGlobal("useRuntimeConfig", vi.fn(() => ({
   public: { apiUrl: "http://localhost:3000/" },
 })))
 
+vi.stubGlobal("defineEventHandler", vi.fn((handler) => handler))
+
+vi.stubGlobal("readBody", vi.fn())
+
