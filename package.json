@@ -1,6 +1,6 @@
 {
   "name": "irl",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "bin": {
     "irl": "bin/irl.js"
   },
@@ -10,7 +10,11 @@
     "prod": "npm run deploy --prefix infra && node scripts/write-env.mjs && npm run dev --prefix web",
     "watch": "tsc -w",
     "test": "vitest run && npm run test --prefix web",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "release": "standard-version",
+    "release:minor": "standard-version --release-as minor",
+    "release:major": "standard-version --release-as major",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.4.3",
