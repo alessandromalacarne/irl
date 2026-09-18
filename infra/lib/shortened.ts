@@ -4,7 +4,7 @@ import {
     CreateTableCommand,
 } from '@aws-sdk/client-dynamodb'
 
-const TABLE_NAME = 'shortened'
+export const TABLE_NAME = 'shortened'
 
 async function waitForTableActive(client: DynamoDBClient): Promise<void> {
     while (true) {

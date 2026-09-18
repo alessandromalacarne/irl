@@ -1,6 +1,8 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { TABLE_NAME } from './shortened';
 
 export class IrlStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -11,6 +13,14 @@ export class IrlStack extends cdk.Stack {
       handler: 'index.handler',
       code: lambda.Code.fromAsset('../web/.output/server'),
     });
+
+    const shortenedTable = new dynamodb.Table(this, 'ShortenedTable', {
+      tableName: TABLE_NAME,
+      partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+    });
+
+    shortenedTable.grantReadWriteData(main);
 
     const mainUrl = main.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE,
