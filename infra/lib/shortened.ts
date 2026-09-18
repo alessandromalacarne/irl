@@ -2,6 +2,7 @@ import {
     DynamoDBClient,
     DescribeTableCommand,
     CreateTableCommand,
+    ResourceNotFoundException,
 } from '@aws-sdk/client-dynamodb'
 
 export const TABLE_NAME = 'shortened'
@@ -16,14 +17,12 @@ async function waitForTableActive(client: DynamoDBClient): Promise<void> {
     }
 }
 
-export async function ensureShortenedTable(): Promise<void> {
-    const client = new DynamoDBClient({})
-
+export async function ensureShortenedTable(client: DynamoDBClient = new DynamoDBClient({})): Promise<void> {
     try {
         await client.send(new DescribeTableCommand({ TableName: TABLE_NAME }))
         return
     } catch (error) {
-        if (!(error instanceof Error) || error.name !== 'ResourceNotFoundException') {
+        if (!(error instanceof ResourceNotFoundException)) {
             throw error
         }
     }

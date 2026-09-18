@@ -24,19 +24,31 @@ class MockCreateTableCommand {
     }
 }
 
-vi.mock('@aws-sdk/client-dynamodb', () => ({
-    DynamoDBClient: vi.fn().mockImplementation(function() {
-        return new MockDynamoDBClient()
-    }),
-    DescribeTableCommand: vi.fn().mockImplementation(function(input: unknown) {
-        return new MockDescribleTableCommand(input)
-    }),
-    CreateTableCommand: vi.fn().mockImplementation(function(input: unknown) {
-        return new MockCreateTableCommand(input)
-    }),
-}))
+vi.mock('@aws-sdk/client-dynamodb', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@aws-sdk/client-dynamodb')>()
+    return {
+        DynamoDBClient: vi.fn().mockImplementation(function() {
+            return new MockDynamoDBClient()
+        }),
+        DescribeTableCommand: vi.fn().mockImplementation(function(input: unknown) {
+            return new MockDescribleTableCommand(input)
+        }),
+        CreateTableCommand: vi.fn().mockImplementation(function(input: unknown) {
+            return new MockCreateTableCommand(input)
+        }),
+        ResourceNotFoundException: actual.ResourceNotFoundException,
+    }
+})
 
 import { ensureShortenedTable } from '../lib/shortened'
+import { ResourceNotFoundException } from '@aws-sdk/client-dynamodb'
+
+function resourceNotFound(): ResourceNotFoundException {
+    return new ResourceNotFoundException({
+        message: 'Requested resource not found: Table: shortened not found',
+        $metadata: {},
+    })
+}
 
 describe('ensureShortenedTable', () => {
     beforeEach(() => {
@@ -57,10 +69,8 @@ describe('ensureShortenedTable', () => {
     })
 
     it('should create table if it does not exist', async () => {
-        const error = new Error('ResourceNotFoundException')
-        error.name = 'ResourceNotFoundException'
         mockSend
-            .mockRejectedValueOnce(error)
+            .mockRejectedValueOnce(resourceNotFound())
             .mockResolvedValueOnce({ TableDescription: { TableName: 'shortened' } })
             .mockResolvedValueOnce({ Table: { TableStatus: 'ACTIVE' } })
 
@@ -70,10 +80,8 @@ describe('ensureShortenedTable', () => {
     })
 
     it('should wait for table to become active after creation', async () => {
-        const error = new Error('ResourceNotFoundException')
-        error.name = 'ResourceNotFoundException'
         mockSend
-            .mockRejectedValueOnce(error)
+            .mockRejectedValueOnce(resourceNotFound())
             .mockResolvedValueOnce({ Table: { TableStatus: 'CREATING' } })
             .mockResolvedValueOnce({ Table: { TableStatus: 'ACTIVE' } })
 
