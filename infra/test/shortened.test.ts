@@ -1,92 +1,140 @@
-import { vi, beforeEach, describe, it, expect } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import {
+    CreateTableCommand,
+    InternalServerError,
+    DescribeTableCommand,
+    ResourceInUseException,
+    ResourceNotFoundException,
+    type DynamoDBClient,
+} from '@aws-sdk/client-dynamodb'
+import { TABLE_NAME, ensureShortenedTable } from '../lib/shortened'
 
-const mockSend = vi.fn();
+const PROVISION_MS = 3000
 
-class MockDynamoDBClient {
-    send = mockSend;
-}
+type TableState = 'ABSENT' | 'CREATING' | 'ACTIVE'
 
-class MockDescribleTableCommand {
-    input: unknown;
-    type = 'DescribleTableCommand';
+class FakeDynamoDB {
+    state: TableState = 'ABSENT'
+    describes = 0
+    created: CreateTableCommand[] = []
+    describeFailure: Error | null = null
 
-    constructor(input: unknown) {
-        this.input = input;
+    send = async (command: unknown): Promise<unknown> => {
+        if (command instanceof DescribeTableCommand) {
+            this.describes++
+            if (this.describeFailure) {
+                throw this.describeFailure
+            }
+            if (this.state === 'ABSENT') {
+                throw new ResourceNotFoundException({
+                    message: `Cannot do operations on a non-existent table: ${TABLE_NAME}`,
+                    $metadata: {},
+                })
+            }
+            return { Table: { TableName: TABLE_NAME, TableStatus: this.state } }
+        }
+
+        if (command instanceof CreateTableCommand) {
+            if (this.state !== 'ABSENT') {
+                throw new ResourceInUseException({
+                    message: `Table already exists: ${TABLE_NAME}`,
+                    $metadata: {},
+                })
+            }
+            this.created.push(command)
+            this.state = 'CREATING'
+            setTimeout(() => {
+                this.state = 'ACTIVE'
+            }, PROVISION_MS)
+            return { TableDescription: { TableName: TABLE_NAME, TableStatus: 'CREATING' } }
+        }
+
+        throw new Error(`Unexpected command`)
     }
-}
 
-class MockCreateTableCommand {
-    input: unknown;
-    type = 'CreateTableCommand';
-
-    constructor(input: unknown) {
-        this.input = input;
+    asClient(): DynamoDBClient {
+        return this as unknown as DynamoDBClient
     }
-}
-
-vi.mock('@aws-sdk/client-dynamodb', async (importOriginal) => {
-    const actual = await importOriginal<typeof import('@aws-sdk/client-dynamodb')>()
-    return {
-        DynamoDBClient: vi.fn().mockImplementation(function() {
-            return new MockDynamoDBClient()
-        }),
-        DescribeTableCommand: vi.fn().mockImplementation(function(input: unknown) {
-            return new MockDescribleTableCommand(input)
-        }),
-        CreateTableCommand: vi.fn().mockImplementation(function(input: unknown) {
-            return new MockCreateTableCommand(input)
-        }),
-        ResourceNotFoundException: actual.ResourceNotFoundException,
-    }
-})
-
-import { ensureShortenedTable } from '../lib/shortened'
-import { ResourceNotFoundException } from '@aws-sdk/client-dynamodb'
-
-function resourceNotFound(): ResourceNotFoundException {
-    return new ResourceNotFoundException({
-        message: 'Requested resource not found: Table: shortened not found',
-        $metadata: {},
-    })
 }
 
 describe('ensureShortenedTable', () => {
-    beforeEach(() => {
-        vi.clearAllMocks()
+    afterEach(() => {
+        vi.useRealTimers()
     })
 
-    it('should not create table if it already exists', async () => {
-        mockSend.mockResolvedValueOnce({
-            Table: {
-                TableName: 'shortened',
-                TableStatus: 'ACTIVE',
-            },
+    it('leaves an existing active table untouched', async () => {
+        const db = new FakeDynamoDB()
+        db.state = 'ACTIVE'
+
+        await ensureShortenedTable(db.asClient())
+
+        expect(db.describes).toBeGreaterThan(0)
+        expect(db.created).toHaveLength(0)
+        expect(db.state).toBe('ACTIVE')
+    })
+
+    it('creates the table with the schema the stack expects when it is missing', async () => {
+        vi.useFakeTimers()
+        const db = new FakeDynamoDB()
+
+        const pending = ensureShortenedTable(db.asClient())
+        await vi.advanceTimersByTimeAsync(PROVISION_MS * 4)
+        await pending
+
+        expect(db.created).toHaveLength(1)
+        expect(db.created[0].input).toMatchObject({
+            TableName: TABLE_NAME,
+            KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
+            AttributeDefinitions: [{ AttributeName: 'id', AttributeType: 'S' }],
+            BillingMode: 'PAY_PER_REQUEST',
+        })
+        expect(db.state).toBe('ACTIVE')
+    })
+
+    it('does not resolve while the table is still provisioning', async () => {
+        vi.useFakeTimers()
+        const db = new FakeDynamoDB()
+
+        const pending = ensureShortenedTable(db.asClient())
+        let settled = false
+        void pending.then(() => {
+            settled = true
         })
 
-        await ensureShortenedTable()
+        await vi.advanceTimersByTimeAsync(PROVISION_MS / 2)
+        expect(db.state).toBe('CREATING')
+        expect(settled).toBe(false)
 
-        expect(mockSend).toHaveBeenCalledTimes(1)
+        await vi.advanceTimersByTimeAsync(PROVISION_MS)
+        await pending
+        expect(settled).toBe(true)
     })
 
-    it('should create table if it does not exist', async () => {
-        mockSend
-            .mockRejectedValueOnce(resourceNotFound())
-            .mockResolvedValueOnce({ TableDescription: { TableName: 'shortened' } })
-            .mockResolvedValueOnce({ Table: { TableStatus: 'ACTIVE' } })
+    it('creates the table only once across repeated calls', async () => {
+        vi.useFakeTimers()
+        const db = new FakeDynamoDB()
 
-        await ensureShortenedTable()
+        const first = ensureShortenedTable(db.asClient())
+        await vi.advanceTimersByTimeAsync(PROVISION_MS * 4)
+        await first
 
-        expect(mockSend).toHaveBeenCalledTimes(3)
+        await ensureShortenedTable(db.asClient())
+
+        expect(db.created).toHaveLength(1)
+        expect(db.state).toBe('ACTIVE')
     })
 
-    it('should wait for table to become active after creation', async () => {
-        mockSend
-            .mockRejectedValueOnce(resourceNotFound())
-            .mockResolvedValueOnce({ Table: { TableStatus: 'CREATING' } })
-            .mockResolvedValueOnce({ Table: { TableStatus: 'ACTIVE' } })
+    it('surfaces unexpected failures without creating anything', async () => {
+        const db = new FakeDynamoDB()
+        const failure = new InternalServerError({
+            message: 'Internal server error',
+            $metadata: { httpStatusCode: 500 },
+        })
+        db.describeFailure = failure
 
-        await ensureShortenedTable()
+        await expect(ensureShortenedTable(db.asClient())).rejects.toBe(failure)
 
-        expect(mockSend).toHaveBeenCalledTimes(3)
+        expect(db.created).toHaveLength(0)
+        expect(db.state).toBe('ABSENT')
     })
 })
