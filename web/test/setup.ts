@@ -12,3 +12,8 @@ vi.stubGlobal("defineEventHandler", vi.fn((handler) => handler))
 
 vi.stubGlobal("readBody", vi.fn())
 
+vi.stubGlobal("getRouterParam", vi.fn())
+
+vi.stubGlobal("createError", vi.fn((options) =>
+  Object.assign(new Error(options?.statusMessage ?? "Error"), options)
+))

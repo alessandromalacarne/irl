@@ -20,10 +20,9 @@ async function getApiMock() {
   return vi.mocked(api.default.sendUrl)
 }
 
-describe("[UI.IndexPage] POST requisition and localStorage writing", () => {
+describe("[UI.IndexPage] POST requisition", () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    localStorage.clear()
   })
 
   async function mockedFormRequest(id: string, url: string): Promise<{ sendUrl: any, wrapper: any }> {
@@ -49,19 +48,24 @@ describe("[UI.IndexPage] POST requisition and localStorage writing", () => {
     expect(sendUrl).toHaveBeenCalledWith(url);
   })
 
-  it("[UI.IndexPage] stores id → url in localStorage after a successful API response", async () => {
-    const id = "abc123";
-    const url = "https://example.com";
-
-    await mockedFormRequest(id, url);
-    expect(localStorage.getItem(id)).toBe(url);
-  })
-
   it("[UI.IndexPage] displays the confirmation message after shortening", async () => {
     const id = "abc123";
     const url = "https://example.com";
 
     const { wrapper } = await mockedFormRequest(id, url);
     expect(wrapper.find("p").text()).toBe("Shortened https://example.com to abc123")
+  })
+
+  it("[UI.IndexPage] displays an error message when the request fails", async () => {
+    const sendUrl = await getApiMock()
+    sendUrl.mockRejectedValueOnce(new Error("boom"))
+
+    const wrapper = await mountIndexPage()
+    await wrapper.find("input").setValue("https://example.com")
+    await wrapper.find("form").trigger("submit")
+
+    await vi.waitFor(() => {
+      expect(wrapper.find("p").text()).toBe("Could not shorten the url. Try again.")
+    })
   })
 })

@@ -7,9 +7,12 @@ const userUrl = ref('');
 const output = ref('');
 
 const clickShort = async () => {
-  const response: SendUrlResponse = await api.sendUrl(userUrl.value);
-  localStorage.setItem(response.id, response.url);
-  output.value = `Shortened ${userUrl.value} to ${response.id}`;
+  try {
+    const response: SendUrlResponse = await api.sendUrl(userUrl.value);
+    output.value = `Shortened ${userUrl.value} to ${response.id}`;
+  } catch {
+    output.value = 'Could not shorten the url. Try again.';
+  }
 };
 
 </script>

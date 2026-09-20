@@ -12,6 +12,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.750.0",
     "axios": "^1.13.5",
     "nanoid": "^5.1.6",
     "nuxt": "^4.3.0",
