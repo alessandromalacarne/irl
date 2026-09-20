@@ -13,6 +13,9 @@ export class IrlStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'index.handler',
       code: lambda.Code.fromAsset(join(__dirname, '../../web/.output/server')),
+      environment: {
+        SHORTENED_TABLE_NAME: TABLE_NAME,
+      },
     });
 
     const shortenedTable = new dynamodb.Table(this, 'ShortenedTable', {
@@ -27,7 +30,7 @@ export class IrlStack extends cdk.Stack {
       authType: lambda.FunctionUrlAuthType.NONE,
       cors: {
         allowedOrigins: ['*'],
-        allowedMethods: [lambda.HttpMethod.POST],
+        allowedMethods: [lambda.HttpMethod.POST, lambda.HttpMethod.GET],
         allowedHeaders: ['*'],
       },
     });
