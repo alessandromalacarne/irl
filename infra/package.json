@@ -9,6 +9,7 @@
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
+    "db:local": "ts-node --prefer-ts-exts bin/create-table.ts",
     "deploy": "npx aws-cdk@latest deploy --outputs-file cdk-outputs.json"
   },
   "devDependencies": {
