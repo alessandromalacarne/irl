@@ -56,6 +56,19 @@ describe("[UI.IndexPage] POST requisition", () => {
     expect(wrapper.find("p").text()).toBe("Shortened https://example.com to abc123")
   })
 
+  it("[UI.IndexPage] displays the normalized url returned by the api", async () => {
+    const sendUrl = await getApiMock()
+    sendUrl.mockResolvedValueOnce({ id: "abc123", url: "https://google.com" })
+
+    const wrapper = await mountIndexPage()
+    await wrapper.find("input").setValue("google.com")
+    await wrapper.find("form").trigger("submit")
+
+    await vi.waitFor(() => {
+      expect(wrapper.find("p").text()).toBe("Shortened https://google.com to abc123")
+    })
+  })
+
   it("[UI.IndexPage] displays an error message when the request fails", async () => {
     const sendUrl = await getApiMock()
     sendUrl.mockRejectedValueOnce(new Error("boom"))

@@ -5,11 +5,12 @@ import type { AxiosResponse, InternalAxiosRequestConfig } from "axios"
 import type { ShortenedUrl } from "../types/index.ts"
 
 const SHORT_ID = "abc123"
+const USER_INPUT = "google.com"
 const USER_URL = "https://google.com"
 
 const state = vi.hoisted(() => ({
   stored: new Map<string, { id: string, url: string, createdAt: string }>(),
-  requests: [] as { method: string, path: string }[],
+  requests: [] as { method: string, path: string, body?: unknown }[],
 }))
 
 vi.mock("nanoid", () => ({ nanoid: () => SHORT_ID }))
@@ -41,11 +42,11 @@ function requestBody(data: unknown) {
   return typeof data === "string" ? JSON.parse(data) : data
 }
 
-async function dispatch(method: string, path: string, config: InternalAxiosRequestConfig) {
+async function dispatch(method: string, path: string, body: unknown) {
   const id = path.match(/^\/api\/urls\/(.+)$/)?.[1]
 
   if (method === "POST" && path === "/api/insert") {
-    vi.mocked(globalThis.readBody).mockResolvedValueOnce(requestBody(config.data))
+    vi.mocked(globalThis.readBody).mockResolvedValueOnce(body)
     return insertHandler(null)
   }
 
@@ -76,10 +77,16 @@ function asAxiosError(error: unknown, config: InternalAxiosRequestConfig) {
 axios.defaults.adapter = async (config) => {
   const method = (config.method ?? "get").toUpperCase()
   const path = new URL(config.url as string).pathname
-  state.requests.push({ method, path })
+  const body = requestBody(config.data)
+
+  if (body === undefined) {
+    state.requests.push({ method, path })
+  } else {
+    state.requests.push({ method, path, body })
+  }
 
   try {
-    const data = await dispatch(method, path, config)
+    const data = await dispatch(method, path, body)
     return { data, status: 200, statusText: "OK", headers: {}, config } as AxiosResponse
   } catch (error) {
     throw asAxiosError(error, config)
@@ -109,10 +116,10 @@ describe("[E2E.Shorten] visitor journey", () => {
     axios.defaults.adapter = originalAdapter
   })
 
-  it("[E2E.Shorten] shortens the url a visitor submits and redirects whoever opens the short link", async () => {
+  it("[E2E.Shorten] shortens the bare host a visitor submits and redirects whoever opens the short link", async () => {
     const home = await openHomePage()
 
-    await home.find("input").setValue(USER_URL)
+    await home.find("input").setValue(USER_INPUT)
     await home.find("button").trigger("click")
 
     await vi.waitFor(() => expect(home.find("p").text()).not.toBe(""))
@@ -124,7 +131,7 @@ describe("[E2E.Shorten] visitor journey", () => {
     expect(redirect.find("p").text()).toBe("Redirecting...")
     expect(navigateToMock).toHaveBeenCalledWith(USER_URL, { external: true })
     expect(state.requests).toEqual([
-      { method: "POST", path: "/api/insert" },
+      { method: "POST", path: "/api/insert", body: { url: USER_INPUT } },
       { method: "GET", path: `/api/urls/${SHORT_ID}` },
     ])
   })

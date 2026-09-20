@@ -41,8 +41,36 @@ describe("[API.Insert] POST /api/insert", () => {
     expect(shortenMock).not.toHaveBeenCalled()
   })
 
+  it("[API.Insert] prepends https to a url that has no scheme", async () => {
+    const response: SendUrlResponse = { id: "abc123", url: "https://google.com" }
+    shortenMock.mockResolvedValueOnce(response)
+
+    const result = await callHandler({ url: "google.com" }) as SendUrlResponse
+
+    expect(shortenMock).toHaveBeenCalledWith("https://google.com")
+    expect(result).toEqual(response)
+  })
+
+  it("[API.Insert] trims whitespace around the submitted url", async () => {
+    shortenMock.mockResolvedValueOnce({ id: "abc123", url: "https://example.com" })
+
+    await callHandler({ url: "  https://example.com  " })
+
+    expect(shortenMock).toHaveBeenCalledWith("https://example.com")
+  })
+
   it("[API.Insert] rejects a url that is not parseable", async () => {
+    await expect(callHandler({ url: "https://not a url" })).rejects.toMatchObject({ statusCode: 400 })
+    expect(shortenMock).not.toHaveBeenCalled()
+  })
+
+  it("[API.Insert] rejects a scheme-less value that is not a host", async () => {
     await expect(callHandler({ url: "not-a-url" })).rejects.toMatchObject({ statusCode: 400 })
+    expect(shortenMock).not.toHaveBeenCalled()
+  })
+
+  it("[API.Insert] rejects a scheme that is not http or https", async () => {
+    await expect(callHandler({ url: "javascript:alert(1)" })).rejects.toMatchObject({ statusCode: 400 })
     expect(shortenMock).not.toHaveBeenCalled()
   })
 
