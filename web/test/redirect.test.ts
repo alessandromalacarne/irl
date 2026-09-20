@@ -1,54 +1,68 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { mount } from "@vue/test-utils"
 
+vi.mock("../app/composable/api.ts", () => ({
+  default: {
+    resolveUrl: vi.fn(),
+  },
+}))
+
 const navigateToMock = vi.mocked(globalThis.navigateTo)
 
+async function getApiMock() {
+  const api = await import("../app/composable/api.ts")
+  return vi.mocked(api.default.resolveUrl)
+}
+
 async function mountRedirectPage(id: string) {
-  // Mock process.client to mimic a client-side environment
-  vi.stubGlobal("process", { ...process, client: true })
   vi.stubGlobal("useRoute", vi.fn(() => ({ params: { id } })))
 
   const { default: RedirectPage } = await import("../app/pages/[id].vue")
   return mount(RedirectPage)
 }
 
-describe("[UI.RedirectPage] redirect logic", () => {
+function notFoundError() {
+  return Object.assign(new Error("Not Found"), {
+    isAxiosError: true,
+    response: { status: 404 },
+  })
+}
+
+describe("[UI.RedirectPage] resolve and redirect", () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    localStorage.clear()
   })
 
-  it("[UI.RedirectPage] calls navigateTo with the stored url when the id exists in localStorage", async () => {
-    localStorage.setItem("abc123", "https://example.com")
+  it("[UI.RedirectPage] navigates to the url resolved for the route id", async () => {
+    const resolveUrl = await getApiMock()
+    resolveUrl.mockResolvedValueOnce({ id: "abc123", url: "https://example.com" })
 
     await mountRedirectPage("abc123")
 
-    expect(navigateToMock).toHaveBeenCalledOnce()
+    await vi.waitFor(() => expect(navigateToMock).toHaveBeenCalledOnce())
+    expect(resolveUrl).toHaveBeenCalledWith("abc123")
     expect(navigateToMock).toHaveBeenCalledWith("https://example.com", { external: true })
   })
 
-  it("[UI.RedirectPage] calls navigateTo with null when the id is not in localStorage", async () => {
-    // localStorage has no entry for this id
-    await mountRedirectPage("unknown")
+  it("[UI.RedirectPage] shows a not found message after a 404 without navigating", async () => {
+    const resolveUrl = await getApiMock()
+    resolveUrl.mockRejectedValueOnce(notFoundError())
 
-    expect(navigateToMock).toHaveBeenCalledOnce()
-    expect(navigateToMock).toHaveBeenCalledWith(null, { external: true })
+    const wrapper = await mountRedirectPage("unknown")
+
+    await vi.waitFor(() => expect(wrapper.find("p").text()).toBe("Short url not found."))
+    expect(navigateToMock).not.toHaveBeenCalled()
   })
 
-  it("[UI.RedirectPage] uses the id from the route params as the localStorage key", async () => {
-    localStorage.setItem("xyz999", "https://other-site.org/page")
+  it("[UI.RedirectPage] shows a generic failure message on other errors", async () => {
+    const resolveUrl = await getApiMock()
+    resolveUrl.mockRejectedValueOnce(new Error("network down"))
 
-    await mountRedirectPage("xyz999")
+    const wrapper = await mountRedirectPage("abc123")
 
-    expect(navigateToMock).toHaveBeenCalledWith("https://other-site.org/page", { external: true })
-  })
-
-  it("[UI.RedirectPage] does not redirect to the url of a different id", async () => {
-    localStorage.setItem("aaaa11", "https://site-a.com")
-    localStorage.setItem("bbbb22", "https://site-b.com")
-
-    await mountRedirectPage("aaaa11")
-
-    expect(navigateToMock).not.toHaveBeenCalledWith("https://site-b.com", expect.anything())
+    await vi.waitFor(() => {
+      expect(wrapper.find("p").text()).toBe("Could not resolve the short url. Try again.")
+    })
+    expect(navigateToMock).not.toHaveBeenCalled()
   })
 })
