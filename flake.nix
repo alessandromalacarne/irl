@@ -23,6 +23,12 @@
           })
         ];
       };
+
+      playwrightBrowsers = pkgs.playwright-driver.browsers.override {
+        withFirefox = false;
+        withWebkit = false;
+        withFfmpeg = false;
+      };
     in
     {
       devShells.${system}.default = pkgs.mkShell {
@@ -31,9 +37,12 @@
           pkgs.gitflow
           pkgs.unstable.awscli2
           pkgs.nodejs
+          playwrightBrowsers
         ];
 
         shellHook = ''
+          export PLAYWRIGHT_BROWSERS_PATH=${playwrightBrowsers}
+          export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
           echo "Welcome to Irl!"
         '';
       };
