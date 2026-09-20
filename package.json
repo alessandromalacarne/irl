@@ -10,6 +10,7 @@
     "prod": "npm run deploy --prefix infra && node scripts/write-env.mjs && npm run dev --prefix web",
     "watch": "tsc -w",
     "test": "vitest run && npm run test --prefix web",
+    "test:e2e": "npm run test:e2e --prefix web",
     "cdk": "cdk",
     "release": "standard-version",
     "release:minor": "standard-version --release-as minor",
