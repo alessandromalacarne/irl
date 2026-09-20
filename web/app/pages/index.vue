@@ -9,7 +9,7 @@ const output = ref('');
 const clickShort = async () => {
   try {
     const response: SendUrlResponse = await api.sendUrl(userUrl.value);
-    output.value = `Shortened ${userUrl.value} to ${response.id}`;
+    output.value = `Shortened ${response.url} to ${response.id}`;
   } catch {
     output.value = 'Could not shorten the url. Try again.';
   }
@@ -21,7 +21,7 @@ const clickShort = async () => {
   <div>
     <h1>Irl</h1>
     <form @submit.prevent="clickShort">
-      <input v-model="userUrl" type="url" required placeholder="https://example.com">
+      <input v-model="userUrl" type="text" inputmode="url" required placeholder="google.com">
       <button type="submit">Short it</button>
     </form>
     <p>{{ output }}</p>
