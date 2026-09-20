@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import type { SendUrlResponse } from "../types/index.ts"
 
 vi.mock("../server/service/shortener.ts", () => ({
@@ -13,6 +13,10 @@ const shortenMock = vi.mocked(shortener.shorten)
 describe("[API.Insert] POST /api/insert", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
   async function callHandler(body: unknown) {
@@ -43,8 +47,11 @@ describe("[API.Insert] POST /api/insert", () => {
   })
 
   it("[API.Insert] maps unexpected service failures to a 500", async () => {
-    shortenMock.mockRejectedValueOnce(new Error("boom"))
+    const failure = new Error("boom")
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {})
+    shortenMock.mockRejectedValueOnce(failure)
 
     await expect(callHandler({ url: "https://example.com" })).rejects.toMatchObject({ statusCode: 500 })
+    expect(consoleError).toHaveBeenCalledWith("Failed to shorten url", failure)
   })
 })

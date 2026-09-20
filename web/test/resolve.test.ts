@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import type { ResolveUrlResponse, ShortenedUrl } from "../types/index.ts"
 
 vi.mock("../server/service/shortener.ts", () => ({
@@ -14,6 +14,10 @@ const resolveMock = vi.mocked(shortener.resolve)
 describe("[API.Resolve] GET /api/urls/:id", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
   async function callHandler(id?: string) {
@@ -49,8 +53,11 @@ describe("[API.Resolve] GET /api/urls/:id", () => {
   })
 
   it("[API.Resolve] maps unexpected service failures to a 500", async () => {
-    resolveMock.mockRejectedValueOnce(new Error("boom"))
+    const failure = new Error("boom")
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {})
+    resolveMock.mockRejectedValueOnce(failure)
 
     await expect(callHandler("abc123")).rejects.toMatchObject({ statusCode: 500 })
+    expect(consoleError).toHaveBeenCalledWith("Failed to resolve short url", failure)
   })
 })
