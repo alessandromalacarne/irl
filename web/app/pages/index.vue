@@ -1,35 +1,41 @@
 <script setup lang="ts">
 import { ref } from "vue"
-import api from '../composable/api.ts'
-import type { SendUrlResponse } from '../../types.ts'
+import api from "../composable/api.ts"
+import type { SendUrlResponse } from "../../types.ts"
 
-const userUrl = ref('');
-const output = ref('');
-const failed = ref(false);
+const userUrl = ref("")
+const output = ref("")
+const failed = ref(false)
 
 const clickShort = async () => {
   try {
-    const response: SendUrlResponse = await api.sendUrl(userUrl.value);
-    output.value = `Shortened ${response.url} to ${response.id}`;
-    failed.value = false;
+    const response: SendUrlResponse = await api.sendUrl(userUrl.value)
+    output.value = `Shortened ${response.url} to ${response.id}`
+    failed.value = false
   } catch {
-    output.value = 'Could not shorten the url. Try again.';
-    failed.value = true;
+    output.value = "Could not shorten the url. Try again."
+    failed.value = true
   }
-};
-
+}
 </script>
 
 <template>
   <main class="shell">
     <header class="masthead">
       <h1 class="wordmark">Irl</h1>
-      <span class="kicker"><span class="kicker-arrow" aria-hidden="true">↳</span> URL shortener</span>
+      <span class="kicker"
+        ><span class="kicker-arrow" aria-hidden="true">↳</span> URL
+        shortener</span
+      >
     </header>
 
     <section class="hero" aria-labelledby="hero-title">
-      <h2 id="hero-title" class="headline"><span>Long links,</span> <span>short names.</span></h2>
-      <div class="lede">Paste a URL. Get a short link you can say out loud.</div>
+      <h2 id="hero-title" class="headline">
+        <span>Long links,</span> <span>short names.</span>
+      </h2>
+      <div class="lede">
+        Paste a URL. Get a short link you can say out loud.
+      </div>
 
       <form class="shortener" @submit.prevent="clickShort">
         <label class="visually-hidden" for="url-input">URL to shorten</label>
@@ -43,11 +49,18 @@ const clickShort = async () => {
           spellcheck="false"
           required
           placeholder="google.com"
-        >
+        />
         <button type="submit">Short it</button>
       </form>
 
-      <p class="status" :class="{ 'is-error': failed }" role="status" aria-live="polite">{{ output }}</p>
+      <p
+        class="status"
+        :class="{ 'is-error': failed }"
+        role="status"
+        aria-live="polite"
+      >
+        {{ output }}
+      </p>
     </section>
 
     <footer class="footer">
@@ -232,7 +245,10 @@ body {
   font-weight: 600;
   letter-spacing: 0.01em;
   cursor: pointer;
-  transition: background-color 160ms ease, border-color 160ms ease, transform 120ms ease;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 120ms ease;
 }
 
 .shortener button:hover {

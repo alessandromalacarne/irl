@@ -3,10 +3,10 @@ import {
   DynamoDBClient,
   GetItemCommand,
   PutItemCommand,
-} from '@aws-sdk/client-dynamodb'
-import type { AttributeValue } from '@aws-sdk/client-dynamodb'
-import type { ShortenedUrl } from '../../types'
-import { AWS_REGION, DYNAMODB_ENDPOINT, TABLE_NAME } from '../config'
+} from "@aws-sdk/client-dynamodb"
+import type { AttributeValue } from "@aws-sdk/client-dynamodb"
+import type { ShortenedUrl } from "../../types"
+import { AWS_REGION, DYNAMODB_ENDPOINT, TABLE_NAME } from "../config"
 
 export class IdAlreadyExistsError extends Error {}
 
@@ -28,7 +28,7 @@ function toShortenedUrl(item: Record<string, AttributeValue>): ShortenedUrl {
   const createdAt = item.createdAt?.S
 
   if (!id || !url || !createdAt) {
-    throw new Error('Stored shortened url is malformed')
+    throw new Error("Stored shortened url is malformed")
   }
 
   return { id, url, createdAt }
@@ -44,15 +44,17 @@ export function createShortenedRepository({
   return {
     async create(item: ShortenedUrl): Promise<void> {
       try {
-        await client.send(new PutItemCommand({
-          TableName: tableName,
-          Item: {
-            id: { S: item.id },
-            url: { S: item.url },
-            createdAt: { S: item.createdAt },
-          },
-          ConditionExpression: 'attribute_not_exists(id)',
-        }))
+        await client.send(
+          new PutItemCommand({
+            TableName: tableName,
+            Item: {
+              id: { S: item.id },
+              url: { S: item.url },
+              createdAt: { S: item.createdAt },
+            },
+            ConditionExpression: "attribute_not_exists(id)",
+          }),
+        )
       } catch (error) {
         if (error instanceof ConditionalCheckFailedException) {
           throw new IdAlreadyExistsError(`Short id already exists: ${item.id}`)
@@ -62,10 +64,12 @@ export function createShortenedRepository({
     },
 
     async find(id: string): Promise<ShortenedUrl | null> {
-      const result = await client.send(new GetItemCommand({
-        TableName: tableName,
-        Key: { id: { S: id } },
-      }))
+      const result = await client.send(
+        new GetItemCommand({
+          TableName: tableName,
+          Key: { id: { S: id } },
+        }),
+      )
 
       if (!result.Item) {
         return null

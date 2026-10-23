@@ -3,9 +3,11 @@ import { defineConfig, devices } from "@playwright/test"
 const port = Number(process.env.E2E_PORT ?? 3100)
 const baseURL = `http://localhost:${port}`
 
-const dynamodbEndpoint = process.env.DYNAMODB_ENDPOINT ?? "http://localhost:8000"
+const dynamodbEndpoint =
+  process.env.DYNAMODB_ENDPOINT ?? "http://localhost:8000"
 const dynamodbPort = new URL(dynamodbEndpoint).port
-const dynamodbCommand = process.env.DYNAMODB_COMMAND ??
+const dynamodbCommand =
+  process.env.DYNAMODB_COMMAND ??
   `podman run --rm -p ${dynamodbPort}:8000 amazon/dynamodb-local`
 
 export default defineConfig({

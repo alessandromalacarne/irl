@@ -15,7 +15,10 @@ async function getApiMock() {
 }
 
 async function mountRedirectPage(id: string) {
-  vi.stubGlobal("useRoute", vi.fn(() => ({ params: { id } })))
+  vi.stubGlobal(
+    "useRoute",
+    vi.fn(() => ({ params: { id } })),
+  )
 
   const { default: RedirectPage } = await import("../app/pages/[id].vue")
   return mount(RedirectPage)
@@ -35,13 +38,18 @@ describe("[UI.RedirectPage] resolve and redirect", () => {
 
   it("[UI.RedirectPage] navigates to the url resolved for the route id", async () => {
     const resolveUrl = await getApiMock()
-    resolveUrl.mockResolvedValueOnce({ id: "abc123", url: "https://example.com" })
+    resolveUrl.mockResolvedValueOnce({
+      id: "abc123",
+      url: "https://example.com",
+    })
 
     await mountRedirectPage("abc123")
 
     await vi.waitFor(() => expect(navigateToMock).toHaveBeenCalledOnce())
     expect(resolveUrl).toHaveBeenCalledWith("abc123")
-    expect(navigateToMock).toHaveBeenCalledWith("https://example.com", { external: true })
+    expect(navigateToMock).toHaveBeenCalledWith("https://example.com", {
+      external: true,
+    })
   })
 
   it("[UI.RedirectPage] shows a not found message after a 404 without navigating", async () => {
@@ -50,7 +58,9 @@ describe("[UI.RedirectPage] resolve and redirect", () => {
 
     const wrapper = await mountRedirectPage("unknown")
 
-    await vi.waitFor(() => expect(wrapper.find("p").text()).toBe("Short url not found."))
+    await vi.waitFor(() =>
+      expect(wrapper.find("p").text()).toBe("Short url not found."),
+    )
     expect(navigateToMock).not.toHaveBeenCalled()
   })
 
@@ -61,7 +71,9 @@ describe("[UI.RedirectPage] resolve and redirect", () => {
     const wrapper = await mountRedirectPage("abc123")
 
     await vi.waitFor(() => {
-      expect(wrapper.find("p").text()).toBe("Could not resolve the short url. Try again.")
+      expect(wrapper.find("p").text()).toBe(
+        "Could not resolve the short url. Try again.",
+      )
     })
     expect(navigateToMock).not.toHaveBeenCalled()
   })

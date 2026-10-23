@@ -1,15 +1,15 @@
 export interface SendUrlResponse {
-  id: string,
+  id: string
   url: string
 }
 
 export interface ShortenedUrl {
-  id: string,
-  url: string,
+  id: string
+  url: string
   createdAt: string
 }
 
 export interface ResolveUrlResponse {
-  id: string,
+  id: string
   url: string
 }
