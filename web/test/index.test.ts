@@ -41,6 +41,14 @@ describe("[UI.IndexPage] POST requisition", () => {
     }
   }
 
+  it("[UI.IndexPage] presents the shortener as the page's main action", async () => {
+    const wrapper = await mountIndexPage()
+
+    expect(wrapper.find("main").exists()).toBe(true)
+    expect(wrapper.text()).toContain("Long links, short names.")
+    expect(wrapper.find("p").attributes("role")).toBe("status")
+  })
+
   it("[UI.IndexPage] calls api.sendUrl with the input value on form submit", async () => {
     const url = "https://example.com";
     const { sendUrl } = await mockedFormRequest("custom-id", url);
