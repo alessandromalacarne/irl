@@ -1,0 +1,46 @@
+# .mido.toml — guardrails gate configuration
+version = 1
+
+# The standalone packages own their gates: mido does not inherit root gate
+# commands into a package outside the workspace patterns.
+[targets.web.syntax]
+format    = ["npx", "--no-install", "prettier", "--check", "."]
+lint      = ["npx", "--no-install", "eslint", "."]
+typecheck = ["npx", "--no-install", "tsc", "--noEmit"]
+
+# `--no-color`: the tests gate reads the reporter's own `Tests N passed` line.
+[targets.web.tests]
+command      = ["npx", "--no-install", "vitest", "run", "--no-color"]
+timeout_secs = 900
+
+[targets.web.coverage]
+command      = ["npx", "--no-install", "vitest", "run", "--coverage", "--coverage.reporter=lcov", "--coverage.reportsDirectory=coverage", "--no-color"]
+coverage_min = 80
+
+# stryker scopes its sweep through the mutate globs; Vue components stay out
+# because the vitest runner mutates JavaScript, not SFC templates.
+[targets.web.mutation]
+command       = ["npx", "--no-install", "stryker", "run", "--testRunner", "vitest", "--mutate", "server/**/*.ts,app/composable/**/*.ts", "--timeoutMS", "60000"]
+timeout_secs  = 3600
+kill_rate_min = 70
+
+[targets.infra.syntax]
+format    = ["npx", "--no-install", "prettier", "--check", "."]
+lint      = ["npx", "--no-install", "eslint", "."]
+typecheck = ["npx", "--no-install", "tsc", "--noEmit"]
+
+[targets.infra.tests]
+command      = ["npx", "--no-install", "vitest", "run", "--no-color"]
+timeout_secs = 900
+
+[targets.infra.coverage]
+command      = ["npx", "--no-install", "vitest", "run", "--coverage", "--coverage.reporter=lcov", "--coverage.reportsDirectory=coverage", "--no-color"]
+coverage_min = 80
+
+[targets.infra.mutation]
+command       = ["npx", "--no-install", "stryker", "run", "--testRunner", "vitest", "--mutate", "lib/**/*.ts", "--timeoutMS", "30000"]
+timeout_secs  = 3600
+kill_rate_min = 70
+
+[failure]
+max_attempts_per_gate = 3
