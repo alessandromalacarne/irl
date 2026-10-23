@@ -11,7 +11,10 @@ let outputs
 try {
   outputs = JSON.parse(readFileSync(outputsPath, 'utf8'))
 } catch (err) {
-  console.error('Error reading cdk-outputs.json:', err.message)
+  console.error(
+    'Error reading cdk-outputs.json:',
+    err instanceof Error ? err.message : String(err),
+  )
   process.exit(1)
 }
 

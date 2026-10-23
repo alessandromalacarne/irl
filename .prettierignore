@@ -1,0 +1,8 @@
+node_modules/
+.agents/
+coverage/
+.mido/
+package-lock.json
+*.md
+web/
+infra/
