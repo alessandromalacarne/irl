@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { mount } from "@vue/test-utils"
+import type { VueWrapper } from "@vue/test-utils"
+import type { Mock } from "vitest"
 import type { SendUrlResponse } from "../types/index.ts"
 
 vi.mock("../app/composable/api.ts", () => ({
@@ -25,7 +27,10 @@ describe("[UI.IndexPage] POST requisition", () => {
     vi.clearAllMocks()
   })
 
-  async function mockedFormRequest(id: string, url: string): Promise<{ sendUrl: any, wrapper: any }> {
+  async function mockedFormRequest(
+    id: string,
+    url: string,
+  ): Promise<{ sendUrl: Mock; wrapper: VueWrapper }> {
     const sendUrl = await getApiMock()
     const response: SendUrlResponse = { id, url }
     sendUrl.mockResolvedValueOnce(response)
@@ -37,7 +42,7 @@ describe("[UI.IndexPage] POST requisition", () => {
 
     return {
       wrapper,
-      sendUrl
+      sendUrl,
     }
   }
 
@@ -50,18 +55,20 @@ describe("[UI.IndexPage] POST requisition", () => {
   })
 
   it("[UI.IndexPage] calls api.sendUrl with the input value on form submit", async () => {
-    const url = "https://example.com";
-    const { sendUrl } = await mockedFormRequest("custom-id", url);
+    const url = "https://example.com"
+    const { sendUrl } = await mockedFormRequest("custom-id", url)
 
-    expect(sendUrl).toHaveBeenCalledWith(url);
+    expect(sendUrl).toHaveBeenCalledWith(url)
   })
 
   it("[UI.IndexPage] displays the confirmation message after shortening", async () => {
-    const id = "abc123";
-    const url = "https://example.com";
+    const id = "abc123"
+    const url = "https://example.com"
 
-    const { wrapper } = await mockedFormRequest(id, url);
-    expect(wrapper.find("p").text()).toBe("Shortened https://example.com to abc123")
+    const { wrapper } = await mockedFormRequest(id, url)
+    expect(wrapper.find("p").text()).toBe(
+      "Shortened https://example.com to abc123",
+    )
   })
 
   it("[UI.IndexPage] displays the normalized url returned by the api", async () => {
@@ -73,7 +80,9 @@ describe("[UI.IndexPage] POST requisition", () => {
     await wrapper.find("form").trigger("submit")
 
     await vi.waitFor(() => {
-      expect(wrapper.find("p").text()).toBe("Shortened https://google.com to abc123")
+      expect(wrapper.find("p").text()).toBe(
+        "Shortened https://google.com to abc123",
+      )
     })
   })
 
@@ -86,7 +95,9 @@ describe("[UI.IndexPage] POST requisition", () => {
     await wrapper.find("form").trigger("submit")
 
     await vi.waitFor(() => {
-      expect(wrapper.find("p").text()).toBe("Could not shorten the url. Try again.")
+      expect(wrapper.find("p").text()).toBe(
+        "Could not shorten the url. Try again.",
+      )
     })
   })
 })

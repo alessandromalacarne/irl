@@ -34,7 +34,7 @@ describe("[API.Resolve] GET /api/urls/:id", () => {
     }
     resolveMock.mockResolvedValueOnce(shortened)
 
-    const result = await callHandler("abc123") as ResolveUrlResponse
+    const result = (await callHandler("abc123")) as ResolveUrlResponse
 
     expect(globalThis.getRouterParam).toHaveBeenCalledWith(null, "id")
     expect(resolveMock).toHaveBeenCalledWith("abc123")
@@ -42,13 +42,21 @@ describe("[API.Resolve] GET /api/urls/:id", () => {
   })
 
   it("[API.Resolve] responds 404 when the service cannot find the id", async () => {
-    resolveMock.mockRejectedValueOnce(new UrlNotFoundError("Short url not found: unknown"))
+    resolveMock.mockRejectedValueOnce(
+      new UrlNotFoundError("Short url not found: unknown"),
+    )
 
-    await expect(callHandler("unknown")).rejects.toMatchObject({ statusCode: 404 })
+    await expect(callHandler("unknown")).rejects.toMatchObject({
+      statusCode: 404,
+      statusMessage: "Short url not found",
+    })
   })
 
   it("[API.Resolve] responds 400 when the id param is missing", async () => {
-    await expect(callHandler(undefined)).rejects.toMatchObject({ statusCode: 400 })
+    await expect(callHandler(undefined)).rejects.toMatchObject({
+      statusCode: 400,
+      statusMessage: "An id is required",
+    })
     expect(resolveMock).not.toHaveBeenCalled()
   })
 
@@ -57,7 +65,13 @@ describe("[API.Resolve] GET /api/urls/:id", () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {})
     resolveMock.mockRejectedValueOnce(failure)
 
-    await expect(callHandler("abc123")).rejects.toMatchObject({ statusCode: 500 })
-    expect(consoleError).toHaveBeenCalledWith("Failed to resolve short url", failure)
+    await expect(callHandler("abc123")).rejects.toMatchObject({
+      statusCode: 500,
+      statusMessage: "Could not resolve the url",
+    })
+    expect(consoleError).toHaveBeenCalledWith(
+      "Failed to resolve short url",
+      failure,
+    )
   })
 })
