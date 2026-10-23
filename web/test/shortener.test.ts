@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest"
 import type { ShortenedUrl } from "../types/index.ts"
-import { createShortener, UrlNotFoundError } from "../server/service/shortener"
+import { createShortener } from "../server/service/shortener"
 import { IdAlreadyExistsError } from "../server/repository/shortened"
 import type { ShortenedRepository } from "../server/repository/shortened"
 
@@ -30,7 +30,7 @@ function generateIds(...values: string[]) {
   return vi.fn(() => values.shift() as string)
 }
 
-describe("[Service.Shortener] shorten and resolve", () => {
+describe("[Service.Shortener] shorten", () => {
   it("[Service.Shortener] shorten persists the url under a generated id", async () => {
     const repository = new FakeRepository()
     const shortener = createShortener(repository, generateIds("abc123"))
@@ -48,7 +48,10 @@ describe("[Service.Shortener] shorten and resolve", () => {
   it("[Service.Shortener] shorten retries with a new id when the generated one is taken", async () => {
     const repository = new FakeRepository()
     repository.taken.add("taken1")
-    const shortener = createShortener(repository, generateIds("taken1", "fresh1"))
+    const shortener = createShortener(
+      repository,
+      generateIds("taken1", "fresh1"),
+    )
 
     await expect(shortener.shorten("https://example.com")).resolves.toEqual({
       id: "fresh1",
@@ -63,7 +66,9 @@ describe("[Service.Shortener] shorten and resolve", () => {
     const generateId = generateIds("taken1", "taken1", "taken1")
     const shortener = createShortener(repository, generateId)
 
-    await expect(shortener.shorten("https://example.com")).rejects.toThrow("unique id")
+    await expect(shortener.shorten("https://example.com")).rejects.toThrow(
+      "unique id",
+    )
     expect(generateId).toHaveBeenCalledTimes(3)
   })
 
@@ -75,7 +80,21 @@ describe("[Service.Shortener] shorten and resolve", () => {
 
     await expect(shortener.shorten("https://example.com")).rejects.toBe(failure)
   })
+})
 
+describe("[Service.Shortener] default id generator", () => {
+  it("[Service.Shortener] shorten generates a six-character id by default", async () => {
+    const repository = new FakeRepository()
+    const shortener = createShortener(repository)
+
+    const result = await shortener.shorten("https://example.com")
+
+    expect(result.id).toMatch(/^[\w-]{6}$/)
+    expect(repository.items.has(result.id)).toBe(true)
+  })
+})
+
+describe("[Service.Shortener] resolve", () => {
   it("[Service.Shortener] resolve returns the stored shortened url", async () => {
     const repository = new FakeRepository()
     await repository.create({
@@ -95,6 +114,8 @@ describe("[Service.Shortener] shorten and resolve", () => {
   it("[Service.Shortener] resolve throws UrlNotFoundError for an unknown id", async () => {
     const shortener = createShortener(new FakeRepository())
 
-    await expect(shortener.resolve("unknown")).rejects.toBeInstanceOf(UrlNotFoundError)
+    await expect(shortener.resolve("unknown")).rejects.toThrow(
+      "Short url not found: unknown",
+    )
   })
 })

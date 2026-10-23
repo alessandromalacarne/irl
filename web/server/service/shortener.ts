@@ -1,7 +1,10 @@
-import { nanoid } from 'nanoid'
-import type { SendUrlResponse, ShortenedUrl } from '../../types'
-import { createShortenedRepository, IdAlreadyExistsError } from '../repository/shortened'
-import type { ShortenedRepository } from '../repository/shortened'
+import { nanoid } from "nanoid"
+import type { SendUrlResponse, ShortenedUrl } from "../../types"
+import {
+  createShortenedRepository,
+  IdAlreadyExistsError,
+} from "../repository/shortened"
+import type { ShortenedRepository } from "../repository/shortened"
 
 const MAX_ATTEMPTS = 3
 const ID_LENGTH = 6
@@ -23,7 +26,11 @@ export function createShortener(
         const id = generateId()
 
         try {
-          await repository.create({ id, url, createdAt: new Date().toISOString() })
+          await repository.create({
+            id,
+            url,
+            createdAt: new Date().toISOString(),
+          })
           return { id, url }
         } catch (error) {
           if (!(error instanceof IdAlreadyExistsError)) {
@@ -32,7 +39,9 @@ export function createShortener(
         }
       }
 
-      throw new Error(`Could not generate a unique id after ${MAX_ATTEMPTS} attempts`)
+      throw new Error(
+        `Could not generate a unique id after ${MAX_ATTEMPTS} attempts`,
+      )
     },
 
     async resolve(id: string): Promise<ShortenedUrl> {

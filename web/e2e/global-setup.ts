@@ -10,7 +10,9 @@ const endpoint = process.env.DYNAMODB_ENDPOINT ?? "http://localhost:8000"
 
 async function waitForTableActive(client: DynamoDBClient): Promise<void> {
   while (true) {
-    const result = await client.send(new DescribeTableCommand({ TableName: tableName }))
+    const result = await client.send(
+      new DescribeTableCommand({ TableName: tableName }),
+    )
 
     if (result.Table?.TableStatus === "ACTIVE") {
       return
@@ -36,12 +38,14 @@ export default async function globalSetup(): Promise<void> {
     }
   }
 
-  await client.send(new CreateTableCommand({
-    TableName: tableName,
-    KeySchema: [{ AttributeName: "id", KeyType: "HASH" }],
-    AttributeDefinitions: [{ AttributeName: "id", AttributeType: "S" }],
-    BillingMode: "PAY_PER_REQUEST",
-  }))
+  await client.send(
+    new CreateTableCommand({
+      TableName: tableName,
+      KeySchema: [{ AttributeName: "id", KeyType: "HASH" }],
+      AttributeDefinitions: [{ AttributeName: "id", AttributeType: "S" }],
+      BillingMode: "PAY_PER_REQUEST",
+    }),
+  )
 
   await waitForTableActive(client)
 }

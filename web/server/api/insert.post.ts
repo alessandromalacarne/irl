@@ -1,11 +1,11 @@
-import type { SendUrlResponse } from '../../types'
-import { shortener } from '../service/shortener'
+import type { SendUrlResponse } from "../../types"
+import { shortener } from "../service/shortener"
 
 const SCHEME = /^[a-z][a-z0-9+.-]*:\/\//i
 const BARE_HOST = /^[a-z0-9-]+(\.[a-z0-9-]+)+(:\d+)?([/?#]|$)/i
 
 function normalizeUrl(url: unknown): string | null {
-  if (typeof url !== 'string') {
+  if (typeof url !== "string") {
     return null
   }
 
@@ -26,7 +26,7 @@ function normalizeUrl(url: unknown): string | null {
   try {
     const { protocol } = new URL(candidate)
 
-    return protocol === 'http:' || protocol === 'https:' ? candidate : null
+    return protocol === "http:" || protocol === "https:" ? candidate : null
   } catch {
     return null
   }
@@ -37,13 +37,19 @@ export default defineEventHandler(async (event): Promise<SendUrlResponse> => {
   const url = normalizeUrl(body?.url)
 
   if (!url) {
-    throw createError({ statusCode: 400, statusMessage: 'A valid url is required' })
+    throw createError({
+      statusCode: 400,
+      statusMessage: "A valid url is required",
+    })
   }
 
   try {
     return await shortener.shorten(url)
   } catch (error) {
-    console.error('Failed to shorten url', error)
-    throw createError({ statusCode: 500, statusMessage: 'Could not shorten the url' })
+    console.error("Failed to shorten url", error)
+    throw createError({
+      statusCode: 500,
+      statusMessage: "Could not shorten the url",
+    })
   }
 })
