@@ -22,30 +22,30 @@ async function getApiMock() {
   return vi.mocked(api.default.sendUrl)
 }
 
-describe("[UI.IndexPage] POST requisition", () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
+beforeEach(() => {
+  vi.clearAllMocks()
+})
 
-  async function mockedFormRequest(
-    id: string,
-    url: string,
-  ): Promise<{ sendUrl: Mock; wrapper: VueWrapper }> {
-    const sendUrl = await getApiMock()
-    const response: SendUrlResponse = { id, url }
-    sendUrl.mockResolvedValueOnce(response)
+async function mockedFormRequest(
+  id: string,
+  url: string,
+): Promise<{ sendUrl: Mock; wrapper: VueWrapper }> {
+  const sendUrl = await getApiMock()
+  const response: SendUrlResponse = { id, url }
+  sendUrl.mockResolvedValueOnce(response)
 
-    const wrapper = await mountIndexPage()
-    await wrapper.find("input").setValue(url)
-    await wrapper.find("form").trigger("submit")
-    await vi.waitFor(() => expect(sendUrl).toHaveBeenCalledOnce())
+  const wrapper = await mountIndexPage()
+  await wrapper.find("input").setValue(url)
+  await wrapper.find("form").trigger("submit")
+  await vi.waitFor(() => expect(sendUrl).toHaveBeenCalledOnce())
 
-    return {
-      wrapper,
-      sendUrl,
-    }
+  return {
+    wrapper,
+    sendUrl,
   }
+}
 
+describe("[UI.IndexPage] page structure", () => {
   it("[UI.IndexPage] presents the shortener as the page's main action", async () => {
     const wrapper = await mountIndexPage()
 
@@ -53,7 +53,9 @@ describe("[UI.IndexPage] POST requisition", () => {
     expect(wrapper.text()).toContain("Long links, short names.")
     expect(wrapper.find("p").attributes("role")).toBe("status")
   })
+})
 
+describe("[UI.IndexPage] form submission", () => {
   it("[UI.IndexPage] calls api.sendUrl with the input value on form submit", async () => {
     const url = "https://example.com"
     const { sendUrl } = await mockedFormRequest("custom-id", url)
