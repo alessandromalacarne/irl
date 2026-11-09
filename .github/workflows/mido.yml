@@ -1,0 +1,57 @@
+name: Mido guardrails
+
+on:
+  push:
+    branches: [master, develop]
+  pull_request:
+    branches: [master, develop]
+
+jobs:
+  mido:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            infra/package-lock.json
+            web/package-lock.json
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install mido-guard
+        run: |
+          cargo install mido-guard
+          if ! command -v mido >/dev/null 2>&1; then
+            if command -v mido-guard >/dev/null 2>&1; then
+              ln -s "$(command -v mido-guard)" "$HOME/.cargo/bin/mido"
+            fi
+          fi
+          mido --version
+
+      - name: Install root dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Install infra dependencies
+        run: npm ci --ignore-scripts
+        working-directory: infra
+
+      - name: Install web dependencies
+        run: npm ci --ignore-scripts
+        working-directory: web
+
+      - name: Prepare Nuxt types
+        run: npx nuxt prepare
+        working-directory: web
+
+      - name: Run mido guardrails
+        run: mido -p infra -p web
